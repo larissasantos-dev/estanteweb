@@ -7,10 +7,6 @@ public class SugestaoRepository {
 
     private List<Sugestao> listaSugestoes = new ArrayList<>();
 
-    public void adicionar(Sugestao s){
-        listaSugestoes.add(s);
-    }
-
     public List<Sugestao> listarTodas(){
         return listaSugestoes;
     }
@@ -20,5 +16,6 @@ public class SugestaoRepository {
     }
 
     public void salvar(Sugestao sugestao) {
+        listaSugestoes.add(sugestao);
     }
 }

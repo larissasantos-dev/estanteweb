@@ -1,5 +1,6 @@
 package br.com.estanteweb;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,7 +15,9 @@ import java.util.List;
 @Controller
 public class LivroController {
 
-    private LivroRepository repositorioLivro = new LivroRepository();
+    // Missão 1.2: o repositório é injetado pelo Spring, sem "new"
+    @Autowired
+    private LivroRepository repositorioLivro;
 
     @ResponseBody
     @GetMapping("/livros")
@@ -71,6 +74,14 @@ public class LivroController {
                 .status(200)
                 .header("X-Total-Encontrados", String.valueOf(encontrados.size()))
                 .body(acervo);
+    }
+
+    // Semana 7, Missão 4.4 (desafio): valor total do acervo, calculado pelo banco
+    @ResponseBody
+    @GetMapping("/livros/valor-total")
+    public String valorTotal(){
+        double total = repositorioLivro.somarValorAcervo();
+        return "O valor total do acervo é R$ " + String.format("%.2f", total) + ".";
     }
 
     // Missão 2.3: lê o cabeçalho User-Agent da requisição
