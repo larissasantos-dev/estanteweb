@@ -1,40 +1,57 @@
 package br.com.estanteweb;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+// Missão 1.1: @Repository torna a classe um bean gerenciado pelo Spring
+@Repository
 public class LivroRepository {
 
-    private List<Livro> listaLivros= new ArrayList<>();
+    // Missão 1.1: o Spring injeta o JdbcTemplate que ele mesmo montou
+    // a partir do application.properties (Semana 6)
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
-    public LivroRepository(){
-        listaLivros.add(new Livro("O Ladrão de Raios", "Rick Riordan", 15.00));
-        listaLivros.add(new Livro("O Mar de Monstros", "Rick Riordan", 14.50));
-        listaLivros.add(new Livro("A Maldição do Titã", "Rick Riordan", 16.00));
-        listaLivros.add(new Livro("A Batalha do Labirinto", "Rick Riordan", 18.00));
-        listaLivros.add(new Livro("O Último Olimpiano", "Rick Riordan", 19.90));
-        listaLivros.add(new Livro("A <b>Marca de Atena</b>", "Rick Riordan", 22.00));
-    }
-
+    // Missão 3.3: busca o acervo no banco e converte cada linha em Livro
     public List<Livro> listarTodos() {
-        return listaLivros;
-    }
+        String sql = "SELECT * FROM livro";
+        List<Map<String, Object>> linhas = jdbcTemplate.queryForList(sql);
 
-    public int contarLivros(){
-        int qtd = 0;
-        for(int i = 0; i < listaLivros.size(); i++){
-            qtd += 1;
+        List<Livro> livros = new ArrayList<>();
+        for (Map<String, Object> linha : linhas) {
+            livros.add(Livro.deMap(linha));
         }
-        return qtd;
+        return livros;
     }
 
+    // Missão 2.1: a contagem agora é feita pelo próprio banco
+    public int contarLivros(){
+        String sql = "SELECT COUNT(*) FROM livro";
+        return jdbcTemplate.queryForObject(sql, Integer.class);
+    }
+
+    // Missão 4.1: o filtro é feito pelo banco, com parâmetro posicional (?)
     public List<Livro> listarAtePreco(double precoMaximo){
+        String sql = "SELECT * FROM livro WHERE preco <= ?";
+        List<Map<String, Object>> linhas = jdbcTemplate.queryForList(sql, precoMaximo);
+
         List<Livro> encontrados = new ArrayList<>();
-        for(int i = 0; i < listaLivros.size(); i++){
-            if(listaLivros.get(i).getPreco() <= precoMaximo){
-                encontrados.add(listaLivros.get(i));
-            }
+        for (Map<String, Object> linha : linhas) {
+            encontrados.add(Livro.deMap(linha));
         }
         return encontrados;
+    }
+
+    // Missão 4.4 (desafio): soma dos preços de todo o acervo
+    public double somarValorAcervo(){
+        String sql = "SELECT SUM(preco) FROM livro";
+        Double total = jdbcTemplate.queryForObject(sql, Double.class);
+        // SUM devolve NULL quando a tabela está vazia
+        return total != null ? total : 0.0;
     }
 }
